@@ -2,9 +2,9 @@ package omok.domain
 
 import omok.domain.lib.OmokRule
 
-object OmokAdapter {
-    fun adaptBoard(board: OmokBoard): List<List<Int>> {
-        val adaptedBoard = MutableList(15) { MutableList(15) { 0 } }
+object OmokConvertor {
+    fun convertBoard(board: OmokBoard): List<List<Int>> {
+        val convertedBoard = MutableList(15) { MutableList(15) { 0 } }
 
         board.positions.forEach { position ->
             val state =
@@ -13,13 +13,13 @@ object OmokAdapter {
                     StoneState.WHITE -> OmokRule.WHITE_STONE
                     else -> OmokRule.EMPTY_STONE
                 }
-            adaptedBoard[position.x][position.y] = state
+            convertedBoard[position.x][position.y] = state
         }
 
-        return adaptedBoard
+        return convertedBoard
     }
 
-    fun adaptPosition(position: Position): Pair<Int, Int> {
+    fun convertPosition(position: Position): Pair<Int, Int> {
         return position.x to position.y
     }
 }
