@@ -1,31 +1,29 @@
 package omok.view
 
-import omok.domain.OmokGrid
-import omok.domain.player.BlackPlayer
-import omok.domain.player.Player
-import omok.domain.player.WhitePlayer
-import rule.wrapper.point.Point
+import omok.domain.OmokBoard
+import omok.domain.Position
+import omok.domain.StoneState
 
-private fun Player.getDisplayColor(): String {
+private fun StoneState.getDisplayColor(): String {
     return when (this) {
-        is BlackPlayer -> "흑"
-        is WhitePlayer -> "백"
+        StoneState.BLACK -> "흑"
+        StoneState.WHITE -> "백"
         else -> throw IllegalArgumentException()
     }
 }
 
 class InputView {
     fun getPoint(
-        player: Player,
-        latestPoint: Point?,
-        grid: OmokGrid,
-    ): Point {
-        print(MESSAGE_TURN.format(player.getDisplayColor()))
-        if (latestPoint != null) print(MESSAGE_LATEST_POSITION.format(convertToString(latestPoint)))
+        state: StoneState,
+        latestPosition: Position?,
+        board: OmokBoard,
+    ): Position {
+        print(MESSAGE_TURN.format(state.getDisplayColor()))
+        if (latestPosition != null) print(MESSAGE_LATEST_POSITION.format(convertToString(latestPosition)))
         print(MESSAGE_POSITION_GUIDE)
         val rawInput = readln().trim()
 
-        return parsingInput(rawInput, grid) ?: getPoint(player, latestPoint, grid)
+        return parsingInput(rawInput, board) ?: getPoint(state, latestPosition, board)
     }
 
     companion object {
@@ -33,15 +31,15 @@ class InputView {
         private const val MESSAGE_LATEST_POSITION: String = "(마지막 돌의 위치: %s)"
         private const val MESSAGE_POSITION_GUIDE: String = "\n위치를 입력하세요: "
 
-        private fun convertToString(point: Point): String {
-            val letter = 'A' + point.col - 1
-            return letter + (point.row).toString()
+        private fun convertToString(position: Position): String {
+            val letter = 'A' + position.x - 1
+            return letter + (position.y).toString()
         }
 
         private fun parsingInput(
             rawInput: String,
-            grid: OmokGrid,
-        ): Point? {
+            grid: OmokBoard,
+        ): Position? {
             if (rawInput.isEmpty()) return null
 
             val rawRow = rawInput.substring(1)
@@ -49,7 +47,7 @@ class InputView {
 
             val row = validateRow(rawRow, grid.height) ?: return null
             val col = validateCol(rawCol, grid.width) ?: return null
-            return Point(row, col)
+            return Position(row, col)
         }
 
         private fun validateRow(

@@ -2,7 +2,6 @@ package omok.view
 
 import omok.domain.OmokBoard
 import omok.domain.OmokResult
-import omok.domain.Position
 import omok.domain.StoneState
 
 class OutputView {

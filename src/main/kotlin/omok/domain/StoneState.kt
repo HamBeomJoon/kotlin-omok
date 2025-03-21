@@ -1,9 +1,5 @@
 package omok.domain
 
-import omok.domain.player.BlackPlayer
-import omok.domain.player.Player
-import omok.domain.player.WhitePlayer
-
 enum class StoneState {
     BLACK,
     WHITE,
@@ -11,10 +7,10 @@ enum class StoneState {
     ;
 
     companion object {
-        fun getColor(player: Player): StoneState {
-            return when (player) {
-                is BlackPlayer -> BLACK
-                is WhitePlayer -> WHITE
+        fun getNextTurn(state: StoneState): StoneState {
+            return when (state) {
+                BLACK -> WHITE
+                WHITE -> BLACK
                 else -> throw IllegalStateException()
             }
         }

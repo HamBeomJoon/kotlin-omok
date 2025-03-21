@@ -1,77 +1,86 @@
 package omok.domain
 
-import omok.domain.player.BlackPlayer
-import omok.domain.player.Player
-import omok.domain.player.WhitePlayer
+import omok.domain.lib.FourFourRule
+import omok.domain.lib.ThreeThreeRule
 import omok.util.retryInput
-import rule.wrapper.point.Point
 
-class OmokGame(val grid: OmokGrid) {
-    private val blackPlayer: BlackPlayer = BlackPlayer(grid.width, grid.height)
-    private val whitePlayer: WhitePlayer = WhitePlayer(grid.width, grid.height)
+class OmokGame(val board: OmokBoard) {
+    private val gameManager = GameManager()
 
     fun playGame(
-        onTurnStarted: (List<MutableList<StoneState>>) -> Unit,
-        onSelectPosition: (Player, Point?, OmokGrid) -> Point,
+        onTurnStarted: (List<Position>) -> Unit,
+        onSelectPosition: (StoneState, Position?, OmokBoard) -> Position,
     ): OmokResult {
-        var latestPoint: Point? = null
-        var nowPlayer: Player = blackPlayer
+        var latestPosition: Position? = null
+        val state = StoneState.BLACK
 
         while (true) {
-            latestPoint = playTurn(nowPlayer, latestPoint, onTurnStarted, onSelectPosition)
-            if (nowPlayer.checkWin(latestPoint)) return OmokResult.getWinner(nowPlayer)
-            if (grid.isFull()) break
-            nowPlayer = getOtherPlayer(nowPlayer)
+            latestPosition = playTurn(state, onTurnStarted, latestPosition, onSelectPosition)
         }
         return OmokResult.DRAW
     }
 
     private fun playTurn(
-        player: Player,
-        latestPoint: Point?,
-        onTurnStarted: (List<MutableList<StoneState>>) -> Unit,
-        onSelectPosition: (Player, Point?, OmokGrid) -> Point,
-    ): Point {
-        onTurnStarted(grid.board)
-        val point = getPointToPlace(player, latestPoint, onSelectPosition)
-        playMove(player, point)
-        return point
+        state: StoneState,
+        onTurnStarted: (List<Position>) -> Unit,
+        latestPosition: Position?,
+        onSelectPosition: (StoneState, Position?, OmokBoard) -> Position,
+    ): Position {
+        onTurnStarted(board.positions)
+        val position = getPositionToPlace(state, latestPosition, onSelectPosition)
+        val nextTurn = gameManager.changeTurn(state)
+        playMove(position, nextTurn)
+        return position
     }
 
     private fun playMove(
-        player: Player,
-        point: Point,
+        position: Position,
+        stoneState: StoneState,
     ) {
-        grid.putStone(point, StoneState.getColor(player))
-        player.addStone(point)
+        board.putStone(position, stoneState)
     }
 
-    private fun getPointToPlace(
-        player: Player,
-        latestPoint: Point?,
-        onSelectPosition: (Player, Point?, OmokGrid) -> Point,
-    ): Point {
+    private fun getPositionToPlace(
+        state: StoneState,
+        latestPosition: Position?,
+        onSelectPosition: (StoneState, Position?, OmokBoard) -> Position,
+    ): Position {
         return retryInput {
-            val point = onSelectPosition(player, latestPoint, grid)
-            validatePosition(player, point)
-            grid.canPlace(point)
-            point
+            val position = onSelectPosition(state, latestPosition, board)
+            validatePosition(position)
+            board.canPlace(position)
+            position
         }
     }
 
-    private fun validatePosition(
-        nowPlayer: Player,
-        point: Point,
-    ) {
-        val otherPlayer = getOtherPlayer(nowPlayer)
-        nowPlayer.isViolation(otherPlayer.stones, point)
+    private fun validatePosition(position: Position) {
+        val adaptedBoard = OmokConvertor.convertBoard(board)
+        val adaptedPosition = OmokConvertor.convertPosition(position)
+        if (FourFourRule.validate(adaptedBoard, adaptedPosition)) throw IllegalArgumentException()
+        if (ThreeThreeRule.validate(adaptedBoard, adaptedPosition)) throw IllegalArgumentException()
+        // 장목 판단
     }
-
-    private fun getOtherPlayer(player: Player): Player {
-        return if (player is BlackPlayer) {
-            whitePlayer
-        } else {
-            blackPlayer
-        }
-    }
+//
+//    private fun getOtherPlayer(player: Player): Player {
+//        return if (player is BlackPlayer) {
+//            whitePlayer
+//        } else {
+//            blackPlayer
+//        }
+//    }
+//
+//    companion object {
+//        private const val ERROR_DOUBLE_THREE = "3x3 위치에 놓을 수 없습니다"
+//        private const val ERROR_DOUBLE_FOUR = "4x4 위치에 놓을 수 없습니다"
+//        private const val ERROR_OVER_LINE = "장목 위치에 놓을 수 없습니다"
+//
+//        fun dealViolation(violation: Violation): String? {
+//            when (violation) {
+//                Violation.DOUBLE_THREE -> ERROR_DOUBLE_THREE
+//                Violation.DOUBLE_FOUR -> ERROR_DOUBLE_FOUR
+//                Violation.OVERLINE -> ERROR_OVER_LINE
+//                Violation.NONE -> null
+//            }
+//        }
+//    }
 }
