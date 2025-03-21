@@ -7,11 +7,12 @@ object OmokAdapter {
         val adaptedBoard = MutableList(15) { MutableList(15) { 0 } }
 
         board.positions.forEach { position ->
-            val state = when (position.stoneState) {
-                StoneState.BLACK -> OmokRule.BLACK_STONE
-                StoneState.WHITE -> OmokRule.WHITE_STONE
-                else -> OmokRule.EMPTY_STONE
-            }
+            val state =
+                when (position.stoneState) {
+                    StoneState.BLACK -> OmokRule.BLACK_STONE
+                    StoneState.WHITE -> OmokRule.WHITE_STONE
+                    else -> OmokRule.EMPTY_STONE
+                }
             adaptedBoard[position.x][position.y] = state
         }
 
